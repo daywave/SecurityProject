@@ -1,7 +1,11 @@
-const multer = require('multer');
+import axios from 'axios';
+import macaddress from 'macaddress';
+import { generateSHA384Hash, encryptMessage, generateSHA512Hash, hideMessage, generateBlake2Hash } from '../utils/securityUtils.mjs';
+import multer from 'multer';
+
 const upload = multer({ dest: 'uploads/' });
 
-module.exports = upload.single('stegObject'), async (req, res, next) => {
+const securityMiddleware = async (req, res, next) => {
   const { ip, message } = req.body;
   const stegObject = req.file.path;
 
@@ -43,3 +47,4 @@ module.exports = upload.single('stegObject'), async (req, res, next) => {
   next();
 };
 
+export { upload, securityMiddleware };

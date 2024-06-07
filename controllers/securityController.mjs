@@ -1,21 +1,21 @@
-const fs = require('fs-extra');
-const path = require('path');
-const { revealMessage, generateBlake2Hash, generateSHA512Hash, generateSHA384Hash, decryptMessage } = require('../utils/securityUtils');
+import fs from 'fs-extra';
+import path from 'path';
+import { revealMessage, generateBlake2Hash, generateSHA512Hash, generateSHA384Hash, decryptMessage } from '../utils/securityUtils.mjs';
 
-exports.captureMessage = (req, res) => {
+export const captureMessage = (req, res) => {
   const { message, publicKey, stegObject } = req.body;
 
   // Código para capturar mensaje o documento y procesarlo
-  // Se asume que el middleware security.js ya procesó y guardó los datos necesarios en req.processedData
+  // Se asume que el middleware security.mjs ya procesó y guardó los datos necesarios en req.processedData
   const { sha384Hash, sha512Hash, hiddenMessage, blake2Hash } = req.processedData;
 
   // Guardar el objeto con el mensaje oculto
-  fs.writeFileSync(path.join(__dirname, `../hidden/${stegObject}`), hiddenMessage);
+  fs.writeFileSync(path.join('hidden', stegObject), hiddenMessage);
 
   res.json({ sha384Hash, sha512Hash, hiddenMessage, blake2Hash });
 };
 
-exports.sendMessage = (req, res) => {
+export const sendMessage = (req, res) => {
   const { stegObject } = req.body;
 
   // Código para enviar el objeto con el mensaje oculto al otro equipo
@@ -24,11 +24,11 @@ exports.sendMessage = (req, res) => {
   res.json({ success: true });
 };
 
-exports.receiveMessage = (req, res) => {
+export const receiveMessage = (req, res) => {
   const { stegObject } = req.body;
 
   // Extraer el mensaje del objeto
-  const hiddenMessage = fs.readFileSync(path.join(__dirname, `../hidden/${stegObject}`));
+  const hiddenMessage = fs.readFileSync(path.join('hidden', stegObject));
   const message = revealMessage(hiddenMessage);
 
   // Validar el hash Blake2
@@ -44,7 +44,7 @@ exports.receiveMessage = (req, res) => {
   }
 
   // Desencriptar el mensaje con la llave privada
-  const privateKey = fs.readFileSync(path.join(__dirname, `../keys/private.pem`), 'utf8');
+  const privateKey = fs.readFileSync('keys/private.pem', 'utf8');
   const decryptedMessage = decryptMessage(privateKey, message);
 
   // Validar el hash SHA-384

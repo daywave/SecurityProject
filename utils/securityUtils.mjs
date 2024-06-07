@@ -1,7 +1,7 @@
-const crypto = require('crypto');
-const NodeRSA = require('node-rsa');
-const steg = require('steg');
-const fs = require('fs-extra');
+import crypto from 'crypto';
+import NodeRSA from 'node-rsa';
+import * as steg from 'steg';
+import fs from 'fs-extra';
 
 const generateSHA384Hash = (message) => {
   return crypto.createHash('sha384').update(message).digest('hex');
@@ -28,11 +28,19 @@ const revealMessage = (stegObject) => {
   return steg.revealSync(stegObject);
 };
 
-module.exports = {
+const decryptMessage = (privateKey, encryptedMessage) => {
+  const key = new NodeRSA(privateKey);
+  return key.decrypt(encryptedMessage, 'utf8');
+};
+
+export {
   generateSHA384Hash,
   encryptMessage,
   generateSHA512Hash,
   hideMessage,
   generateBlake2Hash,
-  revealMessage
+  revealMessage,
+  decryptMessage
 };
+
+
