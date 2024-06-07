@@ -1,25 +1,43 @@
+const axios = require('axios');
+const macaddress = require('macaddress');
 const { generateSHA384Hash, encryptMessage, generateSHA512Hash, hideMessage, generateBlake2Hash } = require('../utils/securityUtils');
 
-module.exports = (req, res, next) => {
-  const { message, publicKey, stegObject } = req.body;
+module.exports = async (req, res, next) => {
+  const { ip, message, stegObject } = req.body;
 
-  if (message && publicKey) {
-    // Generar el hash SHA-384 del mensaje
-    const sha384Hash = generateSHA384Hash(message);
+  if (ip) {
+    try {
+      // Obtener la dirección MAC
+      const mac = await macaddress.one(ip);
+      console.log(`MAC Address: ${mac}`);
+      
+      // Solicitar la llave pública desde el IP proporcionado
+      const response = await axios.get(`http://${ip}:3000/public-key`);
+      const publicKey = response.data.publicKey;
 
-    // Encriptar el mensaje con RSA
-    const encryptedMessage = encryptMessage(publicKey, message);
+      // Proceso de seguridad
+      if (message && publicKey) {
+        // Generar el hash SHA-384 del mensaje
+        const sha384Hash = generateSHA384Hash(message);
 
-    // Generar el hash SHA-512 del mensaje encriptado
-    const sha512Hash = generateSHA512Hash(encryptedMessage);
+        // Encriptar el mensaje con RSA
+        const encryptedMessage = encryptMessage(publicKey, message);
 
-    // Ocultar el mensaje en el objeto seleccionado
-    const hiddenMessage = hideMessage(stegObject, encryptedMessage);
+        // Generar el hash SHA-512 del mensaje encriptado
+        const sha512Hash = generateSHA512Hash(encryptedMessage);
 
-    // Generar el hash Blake2 del mensaje oculto
-    const blake2Hash = generateBlake2Hash(hiddenMessage);
+        // Ocultar el mensaje en el objeto seleccionado
+        const hiddenMessage = hideMessage(stegObject, encryptedMessage);
 
-    req.processedData = { sha384Hash, sha512Hash, hiddenMessage, blake2Hash };
+        // Generar el hash Blake2 del mensaje oculto
+        const blake2Hash = generateBlake2Hash(hiddenMessage);
+
+        req.processedData = { sha384Hash, sha512Hash, hiddenMessage, blake2Hash };
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Error al obtener la llave pública o la dirección MAC' });
+    }
   }
 
   next();
