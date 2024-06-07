@@ -1,9 +1,9 @@
-const axios = require('axios');
-const macaddress = require('macaddress');
-const { generateSHA384Hash, encryptMessage, generateSHA512Hash, hideMessage, generateBlake2Hash } = require('../utils/securityUtils');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
-module.exports = async (req, res, next) => {
-  const { ip, message, stegObject } = req.body;
+module.exports = upload.single('stegObject'), async (req, res, next) => {
+  const { ip, message } = req.body;
+  const stegObject = req.file.path;
 
   if (ip) {
     try {
@@ -42,3 +42,4 @@ module.exports = async (req, res, next) => {
 
   next();
 };
+

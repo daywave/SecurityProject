@@ -2,6 +2,12 @@ const express = require('express');
 const app = express();
 const indexRouter = require('./routes/index');
 const securityMiddleware = require('./middlewares/security');
+const expressLayouts = require('express-ejs-layouts');
+
+// Configuración de EJS
+app.set('view engine', 'ejs');
+app.use(expressLayouts);
+app.set('views', __dirname + '/views');
 
 app.use(express.json());
 app.use(securityMiddleware);
